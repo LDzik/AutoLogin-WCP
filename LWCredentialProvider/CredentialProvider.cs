@@ -5,7 +5,7 @@ using System.Security;
 [ComVisible(true)]
 [ClassInterface(ClassInterfaceType.None)]
 [ProgId("TestCredentialProvider")]
-[Guid("00000000-0000-0000-0000-000000000000")]
+[Guid("2636A1F3-6B1E-450E-8C9B-5DF1E45F7483")]
 public class TestCredentialProvider : CredentialProviderBase
 {
     public override bool IsUsageScenarioSupported(UsageScenario cpus, CredUIWinFlags dwFlags)
