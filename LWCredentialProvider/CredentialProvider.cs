@@ -141,13 +141,14 @@ public class MyTile : CredentialTile2
 
     protected override CredentialResponseBase GetCredentials()
     {
-        // if (!IsUsbDeviceConnected())
-        if (true)
+
+        if (!IsUsbDeviceConnected())
+        //if (true)
         {
             return new CredentialResponseInsecure()
             {
                 IsSuccess = false,
-                StatusText = DriveTesting()
+                StatusText = "Insert correct USB Drive" // DriveTesting()
             };
         }
 
@@ -215,7 +216,7 @@ public class MyTile : CredentialTile2
         return false;
     }
 
-    private string DriveTesting()
+     private string DriveTesting()
     {
         DriveInfo[] allDrives = DriveInfo.GetDrives();
         
@@ -281,4 +282,6 @@ public class MyTile : CredentialTile2
         return "none";
     }
     //USBManager.GetUSBDrive();
+
+   
 }
