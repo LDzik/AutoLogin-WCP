@@ -5,6 +5,7 @@
 using System.Runtime.InteropServices;
 using System.Security;
 using System.IO;
+using Microsoft.Win32.SafeHandles;
 
 using Lithnet.CredentialProvider;
 
@@ -140,7 +141,8 @@ public class MyTile : CredentialTile2
 
     protected override CredentialResponseBase GetCredentials()
     {
-        if (!IsUsbDeviceConnected())
+        // if (!IsUsbDeviceConnected())
+        if (true)
         {
             return new CredentialResponseInsecure()
             {
@@ -181,7 +183,33 @@ public class MyTile : CredentialTile2
         
         if (driveInfo != null)
         {
-            return true;
+            List<string> drives = USBManager.GetUSBDrive();
+            foreach (string drive in drives)
+            {
+                string usbData = USBManager.ReadUSBKey(drive, 41);
+
+                if (!string.IsNullOrEmpty(usbData))
+                {
+                    // return USBManager.CheckUSBKey(usbData);
+                    bool isValid = USBManager.CheckUSBKey(usbData);
+                    if (isValid)
+                    {
+                        return true;
+
+                        string data = "6603691B6B7EE37F3CA4195BC605F3BAB777457F43F91EB65CEFDCCAB07D070E";
+                        string key = "36DB0D6DAC8388994EF40DE6E5A32D9EE1DDBEE7C8D17C6D7D345CABBC5CA15C";
+                        string iv = "DD25843EB39A529F3FC235BC7C60B997";
+
+                        UserManager userManager = new UserManager();
+
+                        string userData =  userManager.DecodeData(data, key, iv);
+
+                        string[] parts = userData.Split(new[] { UserManager.Separator }, StringSplitOptions.None);
+
+                        //return parts;
+                    }
+                }
+            }
         }
 
         return false;
@@ -195,14 +223,62 @@ public class MyTile : CredentialTile2
         {
             string drivesStr = "";
 
-            foreach (DriveInfo d in allDrives)
+            // foreach (DriveInfo d in allDrives)
+            // {
+            //     //drivesStr += d.Name + "#" + d.DriveType + " ";
+
+
+            // }
+
+           
+
+            List<string> drives = USBManager.GetUSBDrive();
+            foreach (string drive in drives)
             {
-                drivesStr += d.Name + "#" + d.DriveType + " ";
+                string usbData = USBManager.ReadUSBKey(drive, 41);
+
+                if (!string.IsNullOrEmpty(usbData))
+                {
+                    bool isValid = USBManager.CheckUSBKey(usbData);
+                    //return usbData + "#" + isValid;
+
+
+                    string username = "admin";
+                    string password = "zaq1@WSX";
+
+                    string data = "6603691B6B7EE37F3CA4195BC605F3BAB777457F43F91EB65CEFDCCAB07D070E";
+                    string key = "36DB0D6DAC8388994EF40DE6E5A32D9EE1DDBEE7C8D17C6D7D345CABBC5CA15C";
+                    string iv = "DD25843EB39A529F3FC235BC7C60B997";
+
+                    UserManager userManager = new UserManager();
+
+                    string userData =  userManager.DecodeData(data, key, iv);
+
+                    // return userData;
+
+                    // string userDataHex = userManager.EncodeData(username, password, key, iv);
+
+                    // Console.WriteLine($"userDataHex: {userDataHex}");
+
+                    // return userDataHex;
+
+
+                    string[] parts = userData.Split(new[] { UserManager.Separator }, StringSplitOptions.None);
+
+
+
+                    return parts[0] + " " + parts[1];
+                }
+
+                
+
+                //drivesStr += usbData + "#" + isValid + " ";
             }
 
-            return drivesStr;
+            //return drivesStr;
         }
 
         return "none";
     }
+    //USBManager.GetUSBDrive();
 }
