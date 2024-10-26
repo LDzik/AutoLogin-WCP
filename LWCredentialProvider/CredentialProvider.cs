@@ -1,6 +1,12 @@
-﻿using Lithnet.CredentialProvider;
+﻿// using System;
+// using System.Collections.Generic;
+// using System.Drawing;
+// using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
+using System.IO;
+
+using Lithnet.CredentialProvider;
 
 [ComVisible(true)]
 [ClassInterface(ClassInterfaceType.None)]
@@ -25,11 +31,30 @@ public class MyCredentialProvider : CredentialProviderBase
 
     public override IEnumerable<ControlBase> GetControls(UsageScenario cpus)
     {
+
+        // var tileImage = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream("MyCredentialProvider.Resources.TileIcon.png"));
+        // var userImage = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream("MyCredentialProvider.Resources.UserIcon.png"));
+
+        // yield return new CredentialProviderLogoControl("ImageCredentialProvider", "Credential provider logo", tileImage);
+        // yield return new CredentialProviderLogoControl("UserTileImage", "User tile image", userImage);
+
         yield return new CredentialProviderLabelControl("CredProviderLabel", "My first credential provider");
 
         var infoLabel = new SmallLabelControl("InfoLabel", "Enter your username and password please!");
         infoLabel.State = FieldState.DisplayInSelectedTile;
         yield return infoLabel;
+
+
+        // yield return new CheckboxControl("Checkbox", "A checkbox");
+        // yield return new SmallLabelControl("LabelCheckbox", "The check box is currently unchecked");
+        // yield return new CommandLinkControl("CommandLinkCheckbox", "Click this link to change the check box value in code behind");
+
+        // yield return new ComboboxControl("Combobox", "Items to choose from:");
+        // yield return new SmallLabelControl("ComboSelectedItemLabel", "This is the currently selected item: <none>");
+        // yield return new CommandLinkControl("CommandLinkComboboxAdd", "Add a random item to the combo box");
+        // yield return new CommandLinkControl("CommandLinkComboboxRemove", "Remove the last item from the combo box");
+
+
 
         yield return new TextboxControl("UsernameField", "Username");
         var password = new SecurePasswordTextboxControl("PasswordField", "Password");
@@ -115,6 +140,15 @@ public class MyTile : CredentialTile2
 
     protected override CredentialResponseBase GetCredentials()
     {
+        if (!IsUsbDeviceConnected())
+        {
+            return new CredentialResponseInsecure()
+            {
+                IsSuccess = false,
+                StatusText = DriveTesting()
+            };
+        }
+
         string username;
         string domain;
 
@@ -138,5 +172,37 @@ public class MyTile : CredentialTile2
             Domain = domain,
             Username = username
         };
+    }
+
+    private bool IsUsbDeviceConnected()
+    {
+        var driveInfo = DriveInfo.GetDrives()
+            .FirstOrDefault(drive => drive.DriveType == DriveType.Removable && !drive.IsReady);
+        
+        if (driveInfo != null)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private string DriveTesting()
+    {
+        DriveInfo[] allDrives = DriveInfo.GetDrives();
+        
+        if (allDrives.Length > 0)
+        {
+            string drivesStr = "";
+
+            foreach (DriveInfo d in allDrives)
+            {
+                drivesStr += d.Name + "#" + d.DriveType + " ";
+            }
+
+            return drivesStr;
+        }
+
+        return "none";
     }
 }
