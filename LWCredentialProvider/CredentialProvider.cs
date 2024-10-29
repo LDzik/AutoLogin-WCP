@@ -5,6 +5,7 @@
 using System.Runtime.InteropServices;
 using System.Security;
 using System.IO;
+using System.Management;
 using Microsoft.Win32.SafeHandles;
 
 using Lithnet.CredentialProvider;
@@ -33,6 +34,8 @@ public class MyCredentialProvider : CredentialProviderBase
     public override IEnumerable<ControlBase> GetControls(UsageScenario cpus)
     {
 
+        MyTile myTile = new MyTile(this);
+        myTile.StartWatching();
         // var tileImage = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream("MyCredentialProvider.Resources.TileIcon.png"));
         // var userImage = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream("MyCredentialProvider.Resources.UserIcon.png"));
 
@@ -100,6 +103,8 @@ public class MyTile : CredentialTile2
     private SecurePasswordTextboxControl PasswordControl;
     private SecurePasswordTextboxControl PasswordConfirmControl;
 
+    private bool pbAutologin = false;
+
     public MyTile(CredentialProviderBase credentialProvider) : base(credentialProvider)
     {
     }
@@ -139,16 +144,23 @@ public class MyTile : CredentialTile2
         Username = this.User?.QualifiedUserName;
     }
 
+    protected override bool OnSelectedShouldAutoLogon()
+    {
+        //Console.WriteLine($"OnSelectedShouldAutoLogon: {pbAutologin}");
+        return true;
+    }
+
     protected override CredentialResponseBase GetCredentials()
     {
 
-        if (!IsUsbDeviceConnected())
-        //if (true)
+        //if (!IsUsbDeviceConnected())
+        if (true)
         {
             return new CredentialResponseInsecure()
             {
                 IsSuccess = false,
-                StatusText = "Insert correct USB Drive" // DriveTesting()
+                StatusText = DriveTesting(), // "Insert correct USB Drive" // DriveTesting()
+                Username = "aaaa"
             };
         }
 
@@ -176,6 +188,38 @@ public class MyTile : CredentialTile2
             Username = username
         };
     }
+
+
+    ///////
+    
+    private ManagementEventWatcher watcher;
+
+    public void StartWatching()
+    {
+        WqlEventQuery query = new WqlEventQuery("SELECT * FROM Win32_VolumeChangeEvent WHERE EventType = 2");
+        watcher = new ManagementEventWatcher(query);
+        watcher.EventArrived += new EventArrivedEventHandler(OnUSBInserted);
+        watcher.Start();
+    }
+
+    private void OnUSBInserted(object sender, EventArrivedEventArgs e)
+    {
+        Console.WriteLine("USB inserted event detected.");
+        //StopWatching();
+
+        //pbAutologin = true;
+        //OnSelectedShouldAutoLogon();
+      
+        Initialize();
+        GetCredentials();
+    }
+
+    public void StopWatching()
+    {
+        watcher.Stop();
+    }
+    
+    ///////
 
     private bool IsUsbDeviceConnected()
     {
