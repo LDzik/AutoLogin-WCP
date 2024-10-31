@@ -36,6 +36,8 @@ public class MyCredentialProvider : CredentialProviderBase
 
         MyTile myTile = new MyTile(this);
         myTile.StartWatching();
+
+        //SetDefaultTile(myTile, false);
         // var tileImage = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream("MyCredentialProvider.Resources.TileIcon.png"));
         // var userImage = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream("MyCredentialProvider.Resources.UserIcon.png"));
 
@@ -75,6 +77,8 @@ public class MyCredentialProvider : CredentialProviderBase
             yield return new SubmitButtonControl("SubmitButton", "Submit", password);
         }
     }
+    
+    
 
     public override bool ShouldIncludeUserTile(CredentialProviderUser user)
     {
@@ -205,13 +209,16 @@ public class MyTile : CredentialTile2
     private void OnUSBInserted(object sender, EventArrivedEventArgs e)
     {
         Console.WriteLine("USB inserted event detected.");
-        //StopWatching();
+        
 
-        //pbAutologin = true;
-        //OnSelectedShouldAutoLogon();
+        CredentialProviderBase wcpBase = new MyCredentialProvider();
+        
+        wcpBase.SetDefaultTile(this, true);
+
+        wcpBase.ReloadUserTiles();
       
-        Initialize();
-        GetCredentials();
+        // Initialize();
+        // GetCredentials();
     }
 
     public void StopWatching()
