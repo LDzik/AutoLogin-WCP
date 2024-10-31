@@ -23,7 +23,6 @@ public class MyCredentialProvider : CredentialProviderBase
             case UsageScenario.Logon:
             case UsageScenario.UnlockWorkstation:
             case UsageScenario.CredUI:
-            case UsageScenario.ChangePassword:
                 return true;
 
             default:
@@ -34,8 +33,12 @@ public class MyCredentialProvider : CredentialProviderBase
     public override IEnumerable<ControlBase> GetControls(UsageScenario cpus)
     {
 
-        MyTile myTile = new MyTile(this);
-        myTile.StartWatching();
+        // MyTile myTile = new MyTile(this);
+        // myTile.StartWatching();
+
+        USBWatcher usbWatcher = new();
+        usbWatcher.StartWatching();
+        
 
         //SetDefaultTile(myTile, false);
         // var tileImage = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream("MyCredentialProvider.Resources.TileIcon.png"));
@@ -44,7 +47,7 @@ public class MyCredentialProvider : CredentialProviderBase
         // yield return new CredentialProviderLogoControl("ImageCredentialProvider", "Credential provider logo", tileImage);
         // yield return new CredentialProviderLogoControl("UserTileImage", "User tile image", userImage);
 
-        yield return new CredentialProviderLabelControl("CredProviderLabel", "My first credential provider");
+        yield return new CredentialProviderLabelControl("CredProviderLabel", "Custom USB login provider");
 
         var infoLabel = new SmallLabelControl("InfoLabel", "Enter your username and password please!");
         infoLabel.State = FieldState.DisplayInSelectedTile;
@@ -62,20 +65,13 @@ public class MyCredentialProvider : CredentialProviderBase
 
 
 
-        yield return new TextboxControl("UsernameField", "Username");
-        var password = new SecurePasswordTextboxControl("PasswordField", "Password");
-        yield return password;
+        // yield return new TextboxControl("UsernameField", "Username");
+        //var password = new SecurePasswordTextboxControl("PasswordField", "Password");
+        //yield return password;
 
-        if (cpus == UsageScenario.ChangePassword)
-        {
-            var confirmPassword = new SecurePasswordTextboxControl("ConfirmPasswordField", "Confirm password");
-            yield return confirmPassword;
-            yield return new SubmitButtonControl("SubmitButton", "Submit", confirmPassword);
-        }
-        else
-        {
-            yield return new SubmitButtonControl("SubmitButton", "Submit", password);
-        }
+
+        yield return new SubmitButtonControl("SubmitButton", "Submit", infoLabel);
+        
     }
     
     
@@ -103,12 +99,6 @@ public class MyCredentialProvider : CredentialProviderBase
 
 public class MyTile : CredentialTile2
 {
-    private TextboxControl UsernameControl;
-    private SecurePasswordTextboxControl PasswordControl;
-    private SecurePasswordTextboxControl PasswordConfirmControl;
-
-    private bool pbAutologin = false;
-
     public MyTile(CredentialProviderBase credentialProvider) : base(credentialProvider)
     {
     }
@@ -117,56 +107,30 @@ public class MyTile : CredentialTile2
     {
     }
 
-    public string Username
-    {
-        get => UsernameControl.Text;
-        set => UsernameControl.Text = value;
-    }
-
-    public SecureString Password
-    {
-        get => PasswordControl.Password;
-        set => PasswordControl.Password = value;
-    }
-
-    public SecureString ConfirmPassword
-    {
-        get => PasswordConfirmControl.Password;
-        set => PasswordConfirmControl.Password = value;
-    }
-
-    public override void Initialize()
-    {
-        if (UsageScenario == UsageScenario.ChangePassword)
-        {
-            this.PasswordConfirmControl = this.Controls.GetControl<SecurePasswordTextboxControl>("ConfirmPasswordField");
-        }
-
-        this.PasswordControl = this.Controls.GetControl<SecurePasswordTextboxControl>("PasswordField");
-        this.UsernameControl = this.Controls.GetControl<TextboxControl>("UsernameField");
-
-        Username = this.User?.QualifiedUserName;
-    }
-
-    protected override bool OnSelectedShouldAutoLogon()
-    {
-        //Console.WriteLine($"OnSelectedShouldAutoLogon: {pbAutologin}");
-        return true;
-    }
+    public string Username;
 
     protected override CredentialResponseBase GetCredentials()
     {
+        Object[] usbData = IsUsbDeviceConnected();
 
-        //if (!IsUsbDeviceConnected())
-        if (true)
+        if (!(bool)usbData[0])
+        //if (true)
         {
             return new CredentialResponseInsecure()
             {
                 IsSuccess = false,
                 StatusText = DriveTesting(), // "Insert correct USB Drive" // DriveTesting()
-                Username = "aaaa"
+                //Username = "aaaa"
             };
         }
+        Username = (string)usbData[1];
+        // Password = (SecureString)usbData[2];
+        var spassword = new SecureString();
+        foreach (char c in (string)usbData[2]){
+            spassword.AppendChar(c);
+        }
+
+        // Initialize();
 
         string username;
         string domain;
@@ -182,7 +146,7 @@ public class MyTile : CredentialTile2
             domain = Environment.MachineName;
         }
 
-        var spassword = Controls.GetControl<SecurePasswordTextboxControl>("PasswordField").Password;
+        //var spassword = Controls.GetControl<SecurePasswordTextboxControl>("PasswordField").Password;
 
         return new CredentialResponseSecure()
         {
@@ -193,42 +157,7 @@ public class MyTile : CredentialTile2
         };
     }
 
-
-    ///////
-    
-    private ManagementEventWatcher watcher;
-
-    public void StartWatching()
-    {
-        WqlEventQuery query = new WqlEventQuery("SELECT * FROM Win32_VolumeChangeEvent WHERE EventType = 2");
-        watcher = new ManagementEventWatcher(query);
-        watcher.EventArrived += new EventArrivedEventHandler(OnUSBInserted);
-        watcher.Start();
-    }
-
-    private void OnUSBInserted(object sender, EventArrivedEventArgs e)
-    {
-        Console.WriteLine("USB inserted event detected.");
-        
-
-        CredentialProviderBase wcpBase = new MyCredentialProvider();
-        
-        wcpBase.SetDefaultTile(this, true);
-
-        wcpBase.ReloadUserTiles();
-      
-        // Initialize();
-        // GetCredentials();
-    }
-
-    public void StopWatching()
-    {
-        watcher.Stop();
-    }
-    
-    ///////
-
-    private bool IsUsbDeviceConnected()
+    private object[] IsUsbDeviceConnected()
     {
         var driveInfo = DriveInfo.GetDrives()
             .FirstOrDefault(drive => drive.DriveType == DriveType.Removable && !drive.IsReady);
@@ -246,7 +175,9 @@ public class MyTile : CredentialTile2
                     bool isValid = USBManager.CheckUSBKey(usbData);
                     if (isValid)
                     {
-                        return true;
+                        // return true;
+
+                        
 
                         string data = "6603691B6B7EE37F3CA4195BC605F3BAB777457F43F91EB65CEFDCCAB07D070E";
                         string key = "36DB0D6DAC8388994EF40DE6E5A32D9EE1DDBEE7C8D17C6D7D345CABBC5CA15C";
@@ -254,26 +185,28 @@ public class MyTile : CredentialTile2
 
                         UserManager userManager = new UserManager();
 
-                        string userData =  userManager.DecodeData(data, key, iv);
+                        string userData = userManager.DecodeData(data, key, iv);
 
                         string[] parts = userData.Split(new[] { UserManager.Separator }, StringSplitOptions.None);
 
-                        //return parts;
+                        Object[] usbObject = [true, parts[0], parts[1]];
+                        
+                        return usbObject;
                     }
                 }
             }
         }
 
-        return false;
+        return [false];
     }
 
-     private string DriveTesting()
+    private string DriveTesting()
     {
         DriveInfo[] allDrives = DriveInfo.GetDrives();
         
         if (allDrives.Length > 0)
         {
-            string drivesStr = "";
+            //string drivesStr = "";
 
             // foreach (DriveInfo d in allDrives)
             // {
@@ -295,8 +228,8 @@ public class MyTile : CredentialTile2
                     //return usbData + "#" + isValid;
 
 
-                    string username = "admin";
-                    string password = "zaq1@WSX";
+                    // string username = "admin";
+                    // string password = "zaq1@WSX";
 
                     string data = "6603691B6B7EE37F3CA4195BC605F3BAB777457F43F91EB65CEFDCCAB07D070E";
                     string key = "36DB0D6DAC8388994EF40DE6E5A32D9EE1DDBEE7C8D17C6D7D345CABBC5CA15C";

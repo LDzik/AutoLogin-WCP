@@ -1,5 +1,6 @@
 using System;
 using System.Management;
+using Lithnet.CredentialProvider;
 
 public class USBWatcher
 {
@@ -16,8 +17,20 @@ public class USBWatcher
     private void OnUSBInserted(object sender, EventArrivedEventArgs e)
     {
         Console.WriteLine("USB inserted event detected.");
-        //StopWatching();
+        
+
+        CredentialProviderBase wcpBase = new MyCredentialProvider();
+
+        CredentialTile2 myTile = new MyTile(wcpBase);
+        
+        wcpBase.SetDefaultTile(myTile, true);
+
+        wcpBase.ReloadUserTiles();
+      
+        // Initialize();
+        // GetCredentials();
     }
+
 
     public void StopWatching()
     {
