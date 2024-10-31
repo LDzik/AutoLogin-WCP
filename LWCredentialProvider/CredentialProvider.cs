@@ -44,8 +44,9 @@ public class MyCredentialProvider : CredentialProviderBase
         // var tileImage = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream(".Resources.TileIcon.png"));
         // var userImage = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream(".Resources.UserIcon.png"));
 
-        // yield return new CredentialProviderLogoControl("ImageCredentialProvider", "Credential provider logo", tileImage);
+        // yield return new CredentialProviderLogoControl("ImageCredentialProvider", "Credential provider logo", );
         // yield return new CredentialProviderLogoControl("UserTileImage", "User tile image", userImage);
+        //yield return new CredentialProviderLogoControl("ImageCredentialProvider", "Credential User Tile logo", Resource.CyLock);
 
         yield return new CredentialProviderLabelControl("CredProviderLabel", "Custom USB login provider");
 
