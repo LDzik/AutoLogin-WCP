@@ -19,13 +19,13 @@ public class USBWatcher
         Console.WriteLine("USB inserted event detected.");
         
 
-        CredentialProviderBase wcpBase = new MyCredentialProvider();
+        // CredentialProviderBase wcpBase = new MyCredentialProvider();
 
-        CredentialTile2 myTile = new MyTile(wcpBase);
+        // CredentialTile2 myTile = new MyTile(wcpBase);
         
-        wcpBase.SetDefaultTile(myTile, true);
+        // wcpBase.SetDefaultTile(myTile, true);
 
-        wcpBase.ReloadUserTiles();
+        // wcpBase.ReloadUserTiles();
       
         // Initialize();
         // GetCredentials();

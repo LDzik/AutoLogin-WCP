@@ -12,7 +12,7 @@ using Lithnet.CredentialProvider;
 
 [ComVisible(true)]
 [ClassInterface(ClassInterfaceType.None)]
-[ProgId("MyCredentialProvider")]
+[ProgId("CustomUSBCredentialProvider")]
 [Guid("5ADA2295-6DE3-4267-9ED3-D1ED40108E9C")]
 public class MyCredentialProvider : CredentialProviderBase
 {
@@ -41,15 +41,16 @@ public class MyCredentialProvider : CredentialProviderBase
         
 
         //SetDefaultTile(myTile, false);
-        // var tileImage = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream("MyCredentialProvider.Resources.TileIcon.png"));
-        // var userImage = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream("MyCredentialProvider.Resources.UserIcon.png"));
+        // var tileImage = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream(".Resources.TileIcon.png"));
+        // var userImage = new Bitmap(Assembly.GetExecutingAssembly().GetManifestResourceStream(".Resources.UserIcon.png"));
 
         // yield return new CredentialProviderLogoControl("ImageCredentialProvider", "Credential provider logo", tileImage);
         // yield return new CredentialProviderLogoControl("UserTileImage", "User tile image", userImage);
 
         yield return new CredentialProviderLabelControl("CredProviderLabel", "Custom USB login provider");
 
-        var infoLabel = new SmallLabelControl("InfoLabel", "Enter your username and password please!");
+        var infoLabel = new SmallLabelControl("InfoLabel", "Zaloguj");
+        // var infoLabel = new LargeLabelControl("InfoLabel", "Zaloguj");
         infoLabel.State = FieldState.DisplayInSelectedTile;
         yield return infoLabel;
 
