@@ -1,5 +1,5 @@
-﻿// using System;
-// using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -47,13 +47,12 @@ using Lithnet.CredentialProvider;
                 Console.WriteLine(resourceName);
             }
 
-            // var assembly = Assembly.GetExecutingAssembly();
-            // var imageStream = assembly.GetManifestResourceStream("LWCredentialProvider.Resources.TileIcon.png");
-            // var image = new Bitmap(imageStream);
+            var assembly = Assembly.GetExecutingAssembly();
+            var imageStream = assembly.GetManifestResourceStream("LWCredentialProvider.Resources.TileIcon.png");
+            var image = new Bitmap(imageStream);
 
-            // yield return new CredentialProviderLabelControl("CredProviderLabel", "Custom USB login provider");
+            yield return new CredentialProviderLabelControl("CredProviderLabel", "Custom USB login provider");
             // yield return new CredentialProviderLogoControl("ImageCredentialProvider", "Credential provider logo", image);
-            // yield return new CredentialProviderLogoControl("UerTileImage", "User tile image", image);
 
     
 
